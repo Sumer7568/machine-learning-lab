@@ -1,0 +1,38 @@
+#Write a Program (WAP) to implement:Linear Regression, Polynomial Regression
+#Find the R² Score and compare the performance of both models on the same dataset
+
+#CODE:
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.metrics import r2_score
+
+x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).reshape(-1, 1)
+y = np.array([1, 4, 9, 15, 26, 35, 50, 63, 80, 102])
+
+lin = LinearRegression()
+lin.fit(x, y)
+p_lin = lin.predict(x)
+
+poly = PolynomialFeatures(degree=2)
+x_poly = poly.fit_transform(x)
+
+pol_reg = LinearRegression()
+pol_reg.fit(x_poly, y)
+p_poly = pol_reg.predict(x_poly)
+
+r2_lin = r2_score(y, p_lin)
+r2_poly = r2_score(y, p_poly)
+
+print("Linear R2 Score:", r2_lin)
+print("Polynomial R2 Score:", r2_poly)
+
+plt.scatter(x, y, color='black')
+plt.plot(x, p_lin, color='blue', label='Linear')
+plt.plot(x, p_poly, color='red', label='Polynomial')
+plt.legend()
+plt.show()
+
+
