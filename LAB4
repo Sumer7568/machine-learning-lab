@@ -1,1 +1,101 @@
+#Write a Program (WAP) to implement Logistic Regression and calculate:Evaluation Metrics, Confusion Matrix, ROC Curve
 
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+data = pd.read_csv("daily-minimum-temperatures-in-me-1.csv")
+
+mean_temp = data['Daily minimum temperatures'].mean()
+data['Target'] = (data['Daily minimum temperatures'] >= mean_temp).astype(int)
+
+data['Prev_Temp'] = data['Daily minimum temperatures'].shift(1)
+
+data = data.dropna()
+
+X = data['Prev_Temp'].values
+y = data['Target'].values
+
+X = (X - X.mean()) / X.std()
+
+m = 0
+b = 0
+lr = 0.01
+epochs = 1000
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+for _ in range(epochs):
+    z = m * X + b
+    y_pred = sigmoid(z)
+
+    dm = np.mean((y_pred - y) * X)
+    db = np.mean(y_pred - y)
+
+    m -= lr * dm
+    b -= lr * db
+
+z = m * X + b
+probabilities = sigmoid(z)
+
+y_final = (probabilities >= 0.5).astype(int)
+
+TP = np.sum((y == 1) & (y_final == 1))
+TN = np.sum((y == 0) & (y_final == 0))
+FP = np.sum((y == 0) & (y_final == 1))
+FN = np.sum((y == 1) & (y_final == 0))
+
+accuracy = (TP + TN) / len(y)
+precision = TP / (TP + FP) if (TP + FP) else 0
+recall = TP / (TP + FN) if (TP + FN) else 0
+f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) else 0
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1 Score:", f1_score)
+
+cm = np.array([[TN, FP],
+               [FN, TP]])
+
+print("Confusion Matrix:\n", cm)
+
+thresholds = np.sort(probabilities)[::-1]
+tpr_list = []
+fpr_list = []
+
+for t in thresholds:
+    y_thresh = (probabilities >= t).astype(int)
+    
+    tp_t = np.sum((y == 1) & (y_thresh == 1))
+    tn_t = np.sum((y == 0) & (y_thresh == 0))
+    fp_t = np.sum((y == 0) & (y_thresh == 1))
+    fn_t = np.sum((y == 1) & (y_thresh == 0))
+    
+    tpr_t = tp_t / (tp_t + fn_t) if (tp_t + fn_t) else 0
+    fpr_t = fp_t / (fp_t + tn_t) if (fp_t + tn_t) else 0
+    
+    tpr_list.append(tpr_t)
+    fpr_list.append(fpr_t)
+
+fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+
+im = ax[0].imshow(cm, cmap='Blues')
+ax[0].set_title("Confusion Matrix")
+fig.colorbar(im, ax=ax[0])
+ax[0].set_xlabel("Predicted")
+ax[0].set_ylabel("Actual")
+
+for i in range(2):
+    for j in range(2):
+        ax[0].text(j, i, cm[i, j], ha='center', va='center')
+
+ax[1].plot(fpr_list, tpr_list, color='blue')
+ax[1].plot([0, 1], [0, 1], color='red', linestyle='--')
+ax[1].set_title("ROC Curve")
+ax[1].set_xlabel("False Positive Rate")
+ax[1].set_ylabel("True Positive Rate")
+
+plt.tight_layout()
+plt.show()
