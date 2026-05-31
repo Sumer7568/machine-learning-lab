@@ -1,0 +1,31 @@
+#Write a Program (WAP) to find: Precision, Recall, Accuracy, F1 Score, False Positive (FP), False Negative (FN), True Positive (TP), True Negative (TN)
+#Also, plot the Confusion Matrix.
+
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+y = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0]
+p = [1, 0, 1, 0, 0, 1, 1, 0, 1, 0]
+
+cm = confusion_matrix(y, p)
+tn, fp, fn, tp = cm.ravel()
+
+acc = (tp + tn) / (tp + tn + fp + fn)
+prec = tp / (tp + fp) if (tp + fp) else 0
+rec = tp / (tp + fn) if (tp + fn) else 0
+f1 = 2 * (prec * rec) / (prec + rec) if (prec + rec) else 0
+
+print("TP:", tp)
+print("TN:", tn)
+print("FP:", fp)
+print("FN:", fn)
+print("Accuracy:", acc)
+print("Precision:", prec)
+print("Recall:", rec)
+print("F1 Score:", f1)
+
+sns.heatmap(cm, annot=True, cmap='Blues', fmt='d')
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
